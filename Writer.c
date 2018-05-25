@@ -12,7 +12,7 @@
 #include<sys/ipc.h>
 #include<sys/shm.h>
 
-#define SHMSIZE 10
+#define SHMSIZE 1024
 
 void sigHandler(int sig)
 {
@@ -29,6 +29,7 @@ int main()
 	void *shared_Mem = (void *) 0; //NULL로 초기화
 
 	int stat_val;
+	char buffer[BUFSIZ];
 
 	// shmget
 	shmid = shmget((key_t)1234, sizeof(int) * SHMSIZE, 0666 | IPC_CREAT);
@@ -64,32 +65,13 @@ int main()
 		case 0: //child process
 			
 			pause();
-			
-			////flag에 1이 들어갈때까지 기다림
-			//while(*(shmadrr+4)!=1);
-			
-			execl("./Reader","./Reader",shared_Mem,NULL);
 				
+			p_pid = getppid();
+
+			execl("./Reader","./Reader",shmaddr,NULL);
 
 		default: //parent process
 		
-		/*	// shmget
-			shmid = shmget((key_t)1234, sizeof(int) * SHMSIZE, 0666 | IPC_CREAT);
-			if(shmid == -1)
-			{
-				fprintf(stderr, "shmget railed\n");
-				exit(EXIT_FAILURE);
-			}
-
-			// shmat
-			shared_Mem = shmat(shmid, (void *)0, 0);
-			if(shared_Mem == (void *) -1)
-			{
-				fprintf(stderr, "shmat failed\n");
-				exit(EXIT_FAILURE);
-			}*/
-
-
 			printf("-----PARENT PROCESS/ DATA SAVE-----\n");
 			//memory access
 			for(int i = 0; i < SHMSIZE; i++)
@@ -98,11 +80,8 @@ int main()
 				printf("shmaddr : %p, data : %d\n",shmaddr + i, *(shmaddr + i ));
 			}
 
-			//flag = 1
-			//*(shmaddr+1) = 1;
 			
 			kill(c_pid,SIGUSR1);
-
 	}
 
 
